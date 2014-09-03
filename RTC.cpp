@@ -33,7 +33,7 @@ void setTime(time_date times) {
  */
  time_date readTime() {
     
-  time_date times = {0,0,0,0,0,0,0};
+    time_date times = {0,0,0,0,0,0,0};
     Wire.beginTransmission(DS1307);
     Wire.write(byte(0));
     Wire.endTransmission();
