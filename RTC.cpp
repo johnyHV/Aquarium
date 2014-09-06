@@ -8,6 +8,44 @@
  * @param time - struktura naplnena casom pre zapis
  * @return void
  */
+time_date setTimeUart() {
+    bool read_tmp = true;
+    time_date tmp = {0, 0, 0, 0, 0, 0, 0};
+    int a[13] = {0};
+
+    int i = 0;
+    while (read_tmp) {
+
+        if (Serial.available() > 0) {
+            a[i] = Serial.read() - 48;
+            i++;
+            Serial.println(a[i]);
+            Serial.println(i);
+        }
+        if (i == 13)
+            read_tmp = false;
+    }
+    tmp.hour = a[0];
+    tmp.min = a[2];
+    tmp.sec = a[4];
+    Serial.print(tmp.hour);
+    Serial.print(":");
+    Serial.print(tmp.min);
+    Serial.print(":");
+    Serial.println(tmp.sec);
+}
+
+
+
+
+//------------------------------------------------------------------------------
+
+/**
+ *
+ * @info Nastavi cas na RTC
+ * @param time - struktura naplnena casom pre zapis
+ * @return void
+ */
 void setTime(time_date times) {
     Wire.begin();
     Wire.beginTransmission(DS1307);
@@ -31,9 +69,9 @@ void setTime(time_date times) {
  * @param 
  * @return void
  */
- time_date readTime() {
-    
-    time_date times = {0,0,0,0,0,0,0};
+time_date readTime() {
+    Wire.begin();
+    time_date times = {0, 0, 0, 0, 0, 0, 0};
     Wire.beginTransmission(DS1307);
     Wire.write(byte(0));
     Wire.endTransmission();

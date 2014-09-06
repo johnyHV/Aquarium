@@ -25,6 +25,7 @@ const int DS1307 = 0x68; // Address of DS1307 see data sheets
 byte decToBcd(byte val);
 byte bcdToDec(byte val);
 void setTime(time_date);
+time_date setTimeUart();
 time_date readTime();
 void printTime(time_date);
 
