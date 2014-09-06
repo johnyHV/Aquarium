@@ -75,6 +75,7 @@ void loop() {
         time = readTime();
         refresh_time = 0;
     }
+    
     if (Serial.available() > 0) {
         int incomingByte = Serial.read();
 
@@ -129,9 +130,8 @@ void loop() {
             filter_on();
     }
 
-    /*
     // nacitanie vstupu pre zmenu stavu svetla
-    if (!digitalRead(svetlo)) {
+    if (digitalRead(enter)) {
         status_led();
 
         if (s_svetlo)
@@ -141,23 +141,23 @@ void loop() {
     }
 
     // nacitanie stavu pre prvy odklad filtra
-    if ((!digitalRead(off_1))) {
+    if ((digitalRead(off_1))) {
         status_led();
         posun(odklad_1);
         filter_off();
     }
 
     //nacitanie stavu pre druhy odklad filtra
-    if (!digitalRead(off_2)) {
+    if (digitalRead(off_2)) {
 
         status_led();
         posun(odklad_2);
         filter_off();
     }
 
-     */
 
     delay(1000);
+    refresh_time++;
 }
 
 /**
