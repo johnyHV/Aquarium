@@ -8,14 +8,17 @@
 
 // struktura pre cas z RTC
 struct time_date {
-    uint8_t hour; // hodiny
-    uint8_t min; // minuty
-    uint8_t sec; // sekundy
+    uint8_t hour;       // hodiny
+    uint8_t min;        // minuty
+    uint8_t sec;        // sekundy
 
-    uint8_t week_day; // den v tyzdni
-    uint8_t month_day; // den v mesiaci
-    uint8_t month; // mesiac
-    uint8_t year; // rok
+    uint8_t week_day;   // den v tyzdni
+    uint8_t month_day;  // den v mesiaci
+    uint8_t month;      // mesiac
+    uint8_t year;       // rok
+    
+    uint8_t a_hour;     // adresa ulozenia v EEPROM
+    uint8_t a_min;      // adresa ulozenia v EEPROM
 };
 
 const int DS1307 = 0x68; // Address of DS1307 see data sheets
