@@ -3,7 +3,9 @@
 #include <EEPROM.h>
 #include "RTC.h"
 
-/*A0 – D18
+/*
+ * Arduino Leonardo
+A0 – D18
 A1 – D19
 A2 – D20
 A3 – D21
@@ -15,15 +17,23 @@ A8 – D8
 A9 – D9
 A10 – D10
 A11 – D12
+
+ * Arduino UNO
+Pin 14 = Analog in 0
+Pin 15 = Analog in 1
+Pin 16 = Analog in 2
+Pin 17 = Analog in 3
+Pin 18 = Analog in 4
+Pin 19 = Analog in 5
  */
 
 //---------------------------------------
 // Definitia konstant pre I/O
-#define r_svetlo 22     // vystup pre rele svetla  A4
-#define r_filter 23     // vystup pre rele filtra  A5
-#define off_1 18        // tlacidlo pre prve oneskorenie
-#define off_2 19        // tlacidlo pre druhe oneskorenie
-#define enter 20        // tlacidlo pre zmenu stavu svetla
+#define r_svetlo 2      // vystup pre rele svetla  A4
+#define r_filter 3      // vystup pre rele filtra  A5
+#define off_1 14        // tlacidlo pre prve oneskorenie
+#define off_2 15        // tlacidlo pre druhe oneskorenie
+#define enter 16        // tlacidlo pre zmenu stavu svetla
 #define l_status 7      // led status operacie
 #define l_filter 6      // led status vypnuteho filtra
 #define l_start 4       // led status upravy startu casu
@@ -34,8 +44,8 @@ A11 – D12
 
 LiquidCrystal lcd(8, 9, 10, 11, 12, 13);                        // LCD display
 time_date odklad = {0, 0, 0, 0, 0, 0, 0};                       // premenna pre ulozenie dalsieho startu filtra
-static time_date start_svetlo = {10, 0, 0, 0, 0, 0, 0, 0, 1};   // cas zaciatku svetla
-static time_date end_svetlo = {20, 0, 0, 0, 0, 0, 0, 2, 3};     // cas ukoncenia svetla
+time_date start_svetlo = {10, 0, 0, 0, 0, 0, 0, 0, 2};          // cas zaciatku svetla
+time_date end_svetlo = {20, 0, 0, 0, 0, 0, 0, 4, 6};            // cas ukoncenia svetla
 static time_date odklad_1 = {0, 15, 0, 0, 0, 0, 0};             // posun o 15min
 static time_date odklad_2 = {0, 30, 0, 0, 0, 0, 0};             // posun o 1hod
 #define refresh_cycle 5                                         // konstanta poctu opakovania pre refresh casu z RTC
@@ -77,7 +87,7 @@ void setup() {
     lcd.begin(16, 2);
 
     // read data EEPROM
-    read_data_eeprom();
+    //read_data_eeprom();
     
     //initial I/O
     pinMode(r_svetlo, OUTPUT);
@@ -140,7 +150,7 @@ void loop() {
         }
         if (incomingByte == 'l') {
             Serial.println("Setting Time");
-            time_date set_time_ = {21, 43, 00, 1, 8, 9, 14};
+            time_date set_time_ = {15, 23, 00, 4, 11, 9, 14};
             setTime(set_time_);
 
         }
@@ -150,6 +160,13 @@ void loop() {
             Serial.print(digitalRead(16));
         }
         if (incomingByte == 'w') {
+            EEPROM.write(0,1);
+            EEPROM.write(1,1);
+            EEPROM.write(2,1);
+            EEPROM.write(3,1);
+            
+            time_date start_svetlo = {10, 0, 0, 0, 0, 0, 0, 0, 1};   // cas zaciatku svetla
+            time_date end_svetlo = {20, 0, 0, 0, 0, 0, 0, 2, 3};     // cas ukoncenia svetla    
             Serial.println("Write");
             write_data_eeprom();
             Serial.println("Read");
