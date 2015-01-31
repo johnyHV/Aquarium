@@ -46,6 +46,7 @@ LiquidCrystal lcd(8, 9, 10, 11, 12, 13);                        // LCD display
 time_date odklad = {0, 0, 0, 0, 0, 0, 0};                       // premenna pre ulozenie dalsieho startu filtra
 time_date start_svetlo = {10, 0, 0, 0, 0, 0, 0, 0, 2};          // cas zaciatku svetla
 time_date end_svetlo = {20, 0, 0, 0, 0, 0, 0, 4, 6};            // cas ukoncenia svetla
+time_date set_time = {0, 0, 0, 0, 0, 0, 0};			// cas nastavenia
 static time_date odklad_1 = {0, 15, 0, 0, 0, 0, 0};             // posun o 15min
 static time_date odklad_2 = {0, 30, 0, 0, 0, 0, 0};             // posun o 1hod
 #define refresh_cycle 5                                         // konstanta poctu opakovania pre refresh casu z RTC
@@ -87,7 +88,7 @@ void setup() {
     lcd.begin(16, 2);
 
     // read data EEPROM
-    //read_data_eeprom();
+    read_data_eeprom();
     
     //initial I/O
     pinMode(r_svetlo, OUTPUT);
@@ -150,7 +151,7 @@ void loop() {
         }
         if (incomingByte == 'l') {
             Serial.println("Setting Time");
-            time_date set_time_ = {15, 23, 00, 4, 11, 9, 14};
+            time_date set_time_ = {15, 56, 00, 4, 12, 6, 14};
             setTime(set_time_);
 
         }
@@ -196,6 +197,8 @@ void loop() {
         delay(button_delay);
         status_led();
         bool slucka = true;
+	set_time.hour = time.hour;
+	set_time.min = time.min;
 
         // nastavenie casu zaciatku
         do {
@@ -234,7 +237,7 @@ void loop() {
             time = readTime();
             print_time_LCD(time);
 
-            // nastavenie casu zaciatku
+            // nastavenie casu konca
             digitalWrite(l_end, true);
             if (digitalRead(off_2)) {
                 if ((end_svetlo.hour <= 22) || (end_svetlo.hour <= 0)) {
@@ -255,6 +258,72 @@ void loop() {
                 slucka = false;
                 digitalWrite(l_end, false);
             }
+
+            delay(button_delay);
+            status_led();
+        } while (slucka);
+	
+	slucka = true;
+        do {
+            time = readTime();
+            print_time_LCD(time);
+
+            // nastavenie casu hodiny
+            digitalWrite(l_start, true);
+            if (digitalRead(off_2)) {
+                if ((set_time.hour <= 22) || (set_time.hour <= 0)) {
+                    set_time.hour++;
+                } else {
+                    set_time.hour = 0;
+                }
+            }
+            if (digitalRead(off_1)) {
+                if ((set_time.hour <= 22) || (set_time.hour <= 0)) {
+                    set_time.hour--;
+                } else {
+                    set_time.hour = 0;
+                }
+            }
+
+            if (digitalRead(enter)) {
+                slucka = false;
+                digitalWrite(l_start, false);
+            }
+
+            setTime(set_time);
+
+            delay(button_delay);
+            status_led();
+        } while (slucka);
+        
+        slucka = true;
+        do {
+            time = readTime();
+            print_time_LCD(time);
+
+            // nastavenie casu minuty
+            digitalWrite(l_end, true);
+            if (digitalRead(off_2)) {
+                if ((set_time.min <= 58) || (set_time.min <= 0)) {
+                    set_time.min++;
+                } else {
+                    set_time.min = 0;
+                }
+            }
+            if (digitalRead(off_1)) {
+                if ((set_time.min <= 58) || (set_time.min <= 0)) {
+                    set_time.min--;
+                } else {
+                    set_time.min = 0;
+                }
+            }
+
+            if (digitalRead(enter)) {
+                slucka = false;
+                digitalWrite(l_end, false);
+            }
+
+            setTime(set_time);
 
             delay(button_delay);
             status_led();
