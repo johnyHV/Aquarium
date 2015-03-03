@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <LiquidCrystal.h>
 #include <EEPROM.h>
-#include "RTC.h"
+#include "RTC.h" // DS1307
 
 /*
  * Arduino Leonardo
@@ -46,7 +46,7 @@ LiquidCrystal lcd(8, 9, 10, 11, 12, 13);                        // LCD display
 time_date odklad = {0, 0, 0, 0, 0, 0, 0};                       // premenna pre ulozenie dalsieho startu filtra
 time_date start_svetlo = {10, 0, 0, 0, 0, 0, 0, 0, 2};          // cas zaciatku svetla
 time_date end_svetlo = {20, 0, 0, 0, 0, 0, 0, 4, 6};            // cas ukoncenia svetla
-time_date set_time = {0, 0, 0, 0, 0, 0, 0};			// cas nastavenia
+time_date set_time = {0, 0, 0, 0, 0, 0, 0};						// cas nastavenia
 static time_date odklad_1 = {0, 15, 0, 0, 0, 0, 0};             // posun o 15min
 static time_date odklad_2 = {0, 30, 0, 0, 0, 0, 0};             // posun o 1hod
 #define refresh_cycle 5                                         // konstanta poctu opakovania pre refresh casu z RTC
@@ -77,7 +77,7 @@ void write_data_eeprom();
 void setup() {
     // initial UART
     Serial.begin(9600);
-    Serial.println("Start");
+    Serial.println(F("Start"));
     time = readTime();
     printTime(time);
 
@@ -135,22 +135,22 @@ void loop() {
             posun(odklad_1);
             filter_off();
             Serial.print(odklad.hour);
-            Serial.print(":");
+            Serial.print(F(":"));
             Serial.println(odklad.min);
         }
         if (incomingByte == 'j') {
             posun(odklad_2);
             filter_off();
-            Serial.print("Znova zapnutie filtra o: ");
+            Serial.print(F("Znova zapnutie filtra o: "));
             Serial.print(odklad.hour);
-            Serial.print(":");
+            Serial.print(F(":"));
             Serial.println(odklad.min);
         }
         if (incomingByte == 'k') {
             setTimeUart();
         }
         if (incomingByte == 'l') {
-            Serial.println("Setting Time");
+            Serial.println(F("Setting Time"));
             time_date set_time_ = {15, 56, 00, 4, 12, 6, 14};
             setTime(set_time_);
 
@@ -168,9 +168,9 @@ void loop() {
             
             time_date start_svetlo = {10, 0, 0, 0, 0, 0, 0, 0, 1};   // cas zaciatku svetla
             time_date end_svetlo = {20, 0, 0, 0, 0, 0, 0, 2, 3};     // cas ukoncenia svetla    
-            Serial.println("Write");
+            Serial.println(F("Write"));
             write_data_eeprom();
-            Serial.println("Read");
+            Serial.println(F("Read"));
             read_data_eeprom();
         }
     }
@@ -193,7 +193,7 @@ void loop() {
     // nacitanie vstupu pre zmenu stavu svetla
     if (digitalRead(enter)) {
         status_led();
-        Serial.println("Enter button");
+        Serial.println(F("Enter button"));
         delay(button_delay);
         status_led();
         bool slucka = true;
@@ -337,7 +337,7 @@ void loop() {
         status_led();
         posun(odklad_1);
         filter_off();
-        Serial.println("OFF1 button");
+        Serial.println(F("OFF1 button"));
         delay(button_delay);
         status_led();
     }
@@ -348,7 +348,7 @@ void loop() {
         status_led();
         posun(odklad_2);
         filter_off();
-        Serial.println("OFF2 button");
+        Serial.println(F("OFF2 button"));
         delay(button_delay);
         status_led();
     }
@@ -367,9 +367,9 @@ void svetlo_on() {
 
     s_svetlo = true;
     digitalWrite(r_svetlo, false);
-    Serial.print("Svetlo ON - ");
+    Serial.print(F("Svetlo ON - "));
     Serial.print(time.hour);
-    Serial.print(":");
+    Serial.print(F(":"));
     Serial.println(time.min);
 }
 
@@ -382,9 +382,9 @@ void svetlo_off() {
 
     s_svetlo = false;
     digitalWrite(r_svetlo, true);
-    Serial.print("Svetlo OFF - ");
+    Serial.print(F("Svetlo OFF - "));
     Serial.print(time.hour);
-    Serial.print(":");
+    Serial.print(F(":"));
     Serial.println(time.min);
 }
 
@@ -398,9 +398,9 @@ void filter_on() {
     s_filter = true;
     digitalWrite(r_filter, true);
     digitalWrite(l_filter, false);
-    Serial.print("Filter ON - ");
+    Serial.print(F("Filter ON - "));
     Serial.print(time.hour);
-    Serial.print(":");
+    Serial.print(F(":"));
     Serial.println(time.min);
 }
 
@@ -414,9 +414,9 @@ void filter_off() {
     s_filter = false;
     digitalWrite(r_filter, false);
     digitalWrite(l_filter, true);
-    Serial.print("Filter OFF - ");
+    Serial.print(F("Filter OFF - "));
     Serial.print(time.hour);
-    Serial.print(":");
+    Serial.print(F(":"));
     Serial.println(time.min);
 }
 
@@ -467,18 +467,18 @@ void print_time_LCD(time_date tmp) {
     // vypis aktualneho casu
     lcd.setCursor(0, 0);
     if (tmp.hour < 10) {
-        lcd.print("0");
+        lcd.print(F("0"));
         lcd.setCursor(1,0);
         lcd.print(tmp.hour);
     } else
         lcd.print(tmp.hour);
     
     lcd.setCursor(2, 0);
-    lcd.print(":");
+    lcd.print(F(":"));
     
     lcd.setCursor(3,0);
     if (tmp.min < 10) {
-        lcd.print("0");
+        lcd.print(F("0"));
         lcd.setCursor(4,0);
         lcd.print(tmp.min);
     } else
@@ -486,15 +486,15 @@ void print_time_LCD(time_date tmp) {
 
     // vypis stavu filtra
     lcd.setCursor(9, 0);
-    lcd.print("F-");
+    lcd.print(F("F-"));
 
     if (s_filter == true) {
         lcd.setCursor(11, 0);
-        lcd.print("ON   ");
+        lcd.print(F("ON   "));
     } else {
         lcd.setCursor(11, 0);
         if (odklad.hour < 10) {
-            lcd.print("0");
+            lcd.print(F("0"));
             lcd.setCursor(12, 0);
             lcd.print(odklad.hour);
         }
@@ -502,10 +502,10 @@ void print_time_LCD(time_date tmp) {
             lcd.print(odklad.hour);   
         
         lcd.setCursor(13, 0);
-        lcd.print(":");
+        lcd.print(F(":"));
         lcd.setCursor(14, 0);
         if (odklad.min < 10) {
-            lcd.print("0");
+            lcd.print(F("0"));
             lcd.setCursor(15,0);
             lcd.print(odklad.min);
         } else 
@@ -514,7 +514,7 @@ void print_time_LCD(time_date tmp) {
 
     // vypis casu svetla
     lcd.setCursor(0, 1);
-    lcd.print("Z-");
+    lcd.print(F("Z-"));
 
     lcd.setCursor(2, 1);
     if (start_svetlo.hour < 10) {
@@ -525,33 +525,33 @@ void print_time_LCD(time_date tmp) {
         lcd.print(start_svetlo.hour);
 
     lcd.setCursor(4, 1);
-    lcd.print(":");
+    lcd.print(F(":"));
 
     lcd.setCursor(5, 1);
     if (start_svetlo.min < 10) {
-        lcd.print("0");
+        lcd.print(F("0"));
         lcd.setCursor(6,1);
         lcd.print(start_svetlo.min);
     } else
         lcd.print(start_svetlo.min);
 
     lcd.setCursor(9, 1);
-    lcd.print("K-");
+    lcd.print(F("K-"));
 
     lcd.setCursor(11, 1);
     if (end_svetlo.hour < 10) { 
-        lcd.print("0");
+        lcd.print(F("0"));
         lcd.setCursor(12,1);
         lcd.print(end_svetlo.hour);
     } else
         lcd.print(end_svetlo.hour);
 
     lcd.setCursor(13, 1);
-    lcd.print(":");
+    lcd.print(F(":"));
 
     lcd.setCursor(14, 1);
     if (end_svetlo.min < 10) {
-        lcd.print("0");
+        lcd.print(F("0"));
         lcd.setCursor(15,1);
         lcd.print(end_svetlo.min);
     } else
@@ -575,11 +575,11 @@ void read_data_eeprom(){
     end_svetlo.min = EEPROM.read(end_svetlo.a_min);
     
     Serial.print(start_svetlo.hour);
-    Serial.print(":");
+    Serial.print(F(":"));
     Serial.println(start_svetlo.min);
     
     Serial.print(end_svetlo.hour);
-    Serial.print(":");
+    Serial.print(F(":"));
     Serial.print(end_svetlo.min);
 }
 
@@ -595,5 +595,5 @@ void write_data_eeprom(){
     EEPROM.write(end_svetlo.a_hour,end_svetlo.hour);
     EEPROM.write(end_svetlo.a_min,end_svetlo.min);
     
-    Serial.println("Write data to EEPROM");
+    Serial.println(F("Write data to EEPROM"));
 }
