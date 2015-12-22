@@ -32,12 +32,13 @@ Pin 19 = Analog in 5
 #define r_svetlo 2      // vystup pre rele svetla  A4
 #define r_filter 3      // vystup pre rele filtra  A5
 #define off_1 14        // tlacidlo pre prve oneskorenie
-#define off_2 15        // tlacidlo pre druhe oneskorenie
+#define off_2 15        // tlacidlo pre druhe oneskorenie18
 #define enter 16        // tlacidlo pre zmenu stavu svetla
 #define l_status 7      // led status operacie
 #define l_filter 6      // led status vypnuteho filtra
 #define l_start 4       // led status upravy startu casu
 #define l_end 5         // led status upravy koncu casu
+#define LCD_svetlo 17   // pin pre podsvietenie LCD displeja
 
 //--------------------------------------
 // Definicia konstant
@@ -46,7 +47,9 @@ LiquidCrystal lcd(8, 9, 10, 11, 12, 13);                        // LCD display
 time_date odklad = {0, 0, 0, 0, 0, 0, 0};                       // premenna pre ulozenie dalsieho startu filtra
 time_date start_svetlo = {10, 0, 0, 0, 0, 0, 0, 0, 2};          // cas zaciatku svetla
 time_date end_svetlo = {20, 0, 0, 0, 0, 0, 0, 4, 6};            // cas ukoncenia svetla
-time_date set_time = {0, 0, 0, 0, 0, 0, 0};						// cas nastavenia
+time_date set_time = {0, 0, 0, 0, 0, 0, 0};			// cas nastavenia
+time_date end_LCD_svetlo = {0, 0, 0, 0, 0, 0, 0};               // cas ukoncenia podsvietenia LCD
+//static time_date LCD_svetlo = {0, 0, 30, 0, 0, 0, 0};           // svetlo svieti 30s
 static time_date odklad_1 = {0, 15, 0, 0, 0, 0, 0};             // posun o 15min
 static time_date odklad_2 = {0, 30, 0, 0, 0, 0, 0};             // posun o 1hod
 #define refresh_cycle 5                                         // konstanta poctu opakovania pre refresh casu z RTC
@@ -58,6 +61,7 @@ time_date time;
 bool s_svetlo = false;
 bool s_filter = false;
 bool s_led = false;
+bool s_LCD_svetlo = false;  // pomocna premenna pre informaciu o zapnuti svetla
 uint8_t refresh_time = 0;
 
 // funkcie
@@ -71,6 +75,8 @@ void print_time_LCD(time_date tmp);
 char convert_number(uint8_t data);
 void read_data_eeprom();
 void write_data_eeprom();
+void LCD_svetlo_on();
+void LCD_svetlo_off();
 
 //--------------------------------------
 
@@ -97,12 +103,14 @@ void setup() {
     pinMode(l_filter, OUTPUT);
     pinMode(l_start, OUTPUT);
     pinMode(l_end, OUTPUT);
+    pinMode(LCD_svetlo, OUTPUT);
     pinMode(off_1, INPUT);
     pinMode(off_2, INPUT);
     pinMode(enter, INPUT);
-
+    
     svetlo_off();
     filter_on();
+    LCD_svetlo_off();
     
     digitalWrite(l_status, false);
     digitalWrite(l_filter, LOW);
@@ -184,6 +192,12 @@ void loop() {
             svetlo_off();
     }
 
+    // kontrola vypnutia podsvietenia LCD
+    if ((end_LCD_svetlo.hour == time.hour) && (end_LCD_svetlo.min <= time.min) 
+            && (end_LCD_svetlo.sec <= time.sec) && s_LCD_svetlo) {
+        LCD_svetlo_off();
+    }
+    
     // kontrola zapnutia filtra
     if ((odklad.hour == time.hour) && (odklad.min == time.min)) {
         if (!s_filter)
@@ -199,6 +213,7 @@ void loop() {
         bool slucka = true;
 	set_time.hour = time.hour;
 	set_time.min = time.min;
+        LCD_svetlo_on();
 
         // nastavenie casu zaciatku
         do {
@@ -340,17 +355,18 @@ void loop() {
         Serial.println(F("OFF1 button"));
         delay(button_delay);
         status_led();
+        LCD_svetlo_on();
     }
 
     //nacitanie stavu pre druhy odklad filtra
     if (digitalRead(off_2)) {
-
         status_led();
         posun(odklad_2);
         filter_off();
         Serial.println(F("OFF2 button"));
         delay(button_delay);
         status_led();
+        LCD_svetlo_on();
     }
 
     refresh_time++;
@@ -596,4 +612,60 @@ void write_data_eeprom(){
     EEPROM.write(end_svetlo.a_min,end_svetlo.min);
     
     Serial.println(F("Write data to EEPROM"));
+}
+
+/**
+ * 
+ * @info Zapnutie podsvietenia LCD displeja
+ * @param
+ */
+void LCD_svetlo_on() {
+    Serial.println("LCD ON");
+    digitalWrite(LCD_svetlo,HIGH);
+    s_LCD_svetlo = true;
+    uint8_t delay = 30;
+    
+    if (time.sec > 59-delay) {
+        if (time.min == 59) {
+            end_LCD_svetlo.sec = delay - (time.sec - delay);
+            end_LCD_svetlo.min = 0;
+            
+            if (time.hour == 23)
+                end_LCD_svetlo.hour = 0;
+            else
+                end_LCD_svetlo.hour = time.hour + 1;
+            
+        } else {
+            end_LCD_svetlo.sec = delay - (60 - time.sec);
+            end_LCD_svetlo.min = time.min +1;
+            end_LCD_svetlo.hour = time.hour;
+        }
+    }else {
+        end_LCD_svetlo.sec = time.sec + delay;
+        end_LCD_svetlo.min = time.min;
+        end_LCD_svetlo.hour = time.hour;
+    }
+    
+    Serial.print(time.hour);
+    Serial.print(":");
+    Serial.print(time.min);
+    Serial.print(":");
+    Serial.println(time.sec);
+    
+    Serial.print(end_LCD_svetlo.hour);
+    Serial.print(":");
+    Serial.print(end_LCD_svetlo.min);
+    Serial.print(":");
+    Serial.println(end_LCD_svetlo.sec);
+}
+
+/**
+ * 
+ * @info Vypnutie podsvietenia LCD displeja
+ * @param
+ */
+void LCD_svetlo_off() {
+    Serial.println("LCD OFF");
+    s_LCD_svetlo = false;
+    digitalWrite(LCD_svetlo,LOW);
 }
