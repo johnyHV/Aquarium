@@ -63,6 +63,8 @@ bool s_filter = false;
 bool s_led = false;
 bool s_LCD_svetlo = false;  // pomocna premenna pre informaciu o zapnuti svetla
 uint8_t refresh_time = 0;
+uint8_t check_time = 0;
+uint8_t second = 0;
 
 // funkcie
 void svetlo_on();
@@ -126,6 +128,23 @@ void loop() {
         refresh_time = 0;
     }
 
+    // ochrana proti zblbnutiu RTC
+    if (check_time > 7) {
+        if (time.sec == second)
+            setTime(time);
+        
+        if (time.sec > 59) {
+            time.sec = 59;
+            setTime(time);
+        }
+        
+        check_time = 0;
+    } else {
+        second = time.sec;
+        check_time = 0;
+    }
+    check_time++;
+    
     if (Serial.available() > 0) {
         int incomingByte = Serial.read();
 
