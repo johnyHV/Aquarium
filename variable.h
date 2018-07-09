@@ -5,7 +5,8 @@
 #include <Wire.h>
 #include <LiquidCrystal.h>
 #include <EEPROM.h>
-#include "RTC.h" // DS1307
+#include "RTC.h"
+#include <Servo.h>
 
 /*
    Arduino Leonardo
@@ -33,19 +34,21 @@
 
 //---------------------------------------
 // Definitia konstant pre I/O
-#define r_svetlo 2      // vystup pre rele svetla  A4
-#define r_filter 3      // vystup pre rele filtra  A5
+#define r_svetlo 6      // vystup pre rele svetla  A4
+#define r_filter 7      // vystup pre rele filtra  A5
 
-#define B_OFF_FILTER 14        // tlacidlo pre prve oneskorenie
+#define B_OFF_FILTER  14        // tlacidlo pre prve oneskorenie
 #define B_KRMENIE     15
-#define B_ENTER 16        // tlacidlo pre zmenu stavu svetla
+#define B_ENTER       A7        // tlacidlo pre zmenu stavu svetla
 
-#define l_status 7      // led status operacie
-#define l_filter 6      // led status vypnuteho filtra
-#define l_start 4       // led status upravy startu casu
-#define l_end 5         // led status upravy koncu casu
+#define SERVO_PIN     10
 
-#define LCD_svetlo 17   // pin pre podsvietenie LCD displeja
+#define l_status 8      // led status operacie
+#define l_filter 9      // led status vypnuteho filtra
+
+#define LCD_svetlo 13   // pin pre podsvietenie LCD displeja
+
+#define E_krmenie_otacky 10
 
 //--------------------------------------
 // Definicia konstant
@@ -56,14 +59,22 @@ extern time_date start_svetlo;          // cas zaciatku svetla
 extern time_date end_svetlo;            // cas ukoncenia svetla
 extern time_date end_LCD_svetlo;               // cas ukoncenia podsvietenia LCD
 extern time_date posun_filter;             // posun o 15min
+extern time_date krmenie;                 // zaciatok krmenia
+extern uint8_t krmenie_otacky;                    // pocet otacok krmidla
+extern uint8_t krmenie_otacky_status;
 
 #define refresh_cycle 5                                         // konstanta poctu opakovania pre refresh casu z RTC
 #define button_delay 200                                        // konstatna pre cakanie na znova stlacenie tlacidla
 #define LCD_DELAY     30
 
+extern Servo servo1;
+
 //--------------------------------------
 // definicia premennych
 extern time_date time_actuall;
 extern uint8_t refresh_time;
+extern bool krmenie_flag;
+extern uint8_t servo_position;
+extern uint8_t servo_position_cycle;
 
 #endif
