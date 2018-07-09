@@ -4,8 +4,6 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-// time_date time={12,59,59,7,
-
 // struktura pre cas z RTC
 struct time_date {
     uint8_t hour;       // hodiny
