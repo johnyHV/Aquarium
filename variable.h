@@ -49,6 +49,7 @@
 #define LCD_svetlo 13   // pin pre podsvietenie LCD displeja
 
 #define E_krmenie_otacky 10
+#define E_krmenie_status 11
 
 //--------------------------------------
 // Definicia konstant
@@ -62,6 +63,7 @@ extern time_date posun_filter;             // posun o 15min
 extern time_date krmenie;                 // zaciatok krmenia
 extern uint8_t krmenie_otacky;                    // pocet otacok krmidla
 extern uint8_t krmenie_otacky_status;
+extern uint8_t krmenie_status;
 
 #define refresh_cycle 5                                         // konstanta poctu opakovania pre refresh casu z RTC
 #define button_delay 200                                        // konstatna pre cakanie na znova stlacenie tlacidla

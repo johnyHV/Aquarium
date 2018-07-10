@@ -25,6 +25,7 @@ void change_config();
 bool change_config_update_time_hour(time_date *tmp);
 bool change_config_update_time_min(time_date *tmp);
 bool change_config_update_value(uint8_t *tmp);
+bool change_config_update_bool(uint8_t *tmp);
 
 void status_led();
 

@@ -265,7 +265,6 @@ void print_time_LCD(time_date tmp) {
   // ------------------------
   // vypis krmenia
   // ------------------------
-  // vypis casu svetla
   lcd.setCursor(0, 2);
   lcd.print(F("Kz-"));
 
@@ -294,6 +293,39 @@ void print_time_LCD(time_date tmp) {
   lcd.setCursor(14, 2);
   lcd.print(krmenie_otacky);
 
+  // ------------------------
+  // Nastavenie
+  // ------------------------
+  lcd.setCursor(0, 3);
+  lcd.print(F("Ka-"));
+
+  lcd.setCursor(3, 3);
+  if (krmenie_status)
+  {
+    lcd.print(F("Off"));
+  }
+  else
+  {
+    lcd.print(F("On "));
+  }
+
+  // ------------------------
+  // nastavenia filtra
+  lcd.setCursor(11, 3);
+  lcd.print(F("Fc-"));
+
+  lcd.setCursor(14, 3);
+  if (posun_filter.min < 10) {
+    lcd.print(F("0"));
+    lcd.setCursor(15, 3);
+    lcd.print(posun_filter.min);
+  }
+  else
+    lcd.print(posun_filter.min);
+    
+  lcd.setCursor(16, 3);
+  lcd.print("min");
+
   //lcd.setCursor(8,1);
   //lcd.write(0xFF);
 
@@ -305,6 +337,13 @@ void change_config()
   if (button_read(B_ENTER))
   {
     Serial.println(F("Enter change config"));
+
+    digitalWrite(l_filter, HIGH);
+    posun_filter.hour = 0;
+    change_config_update_time_min(&posun_filter);
+
+    digitalWrite(l_filter, LOW);
+    change_config_update_bool(krmenie_status);
 
     digitalWrite(l_filter, HIGH);
     change_config_update_value(&krmenie_otacky);
@@ -429,6 +468,34 @@ bool change_config_update_value(uint8_t *tmp)
   } while (true);
 }
 
+bool change_config_update_bool(uint8_t *tmp)
+{
+  status_led();
+  delay(button_delay);
+  LCD_svetlo_on();
+
+  do {
+    print_time_LCD(time_actuall);
+
+    // nastavenie casu minuty
+
+    if (button_read(B_KRMENIE)) {
+      krmenie_status = true;
+    }
+    if (button_read(B_OFF_FILTER)) {
+      krmenie_status = false;
+    }
+
+    if (button_read(B_ENTER)) {
+      status_led();
+      return true;
+    }
+
+    delay(button_delay);
+    status_led();
+  } while (true);
+}
+
 /**
 
    @info zisti stav ledky, a zneguje ho
@@ -453,7 +520,12 @@ void write_data_eeprom() {
   EEPROM.write(krmenie.E_hour, krmenie.hour);
   EEPROM.write(krmenie.E_min, krmenie.min);
 
+  EEPROM.write(posun_filter.E_hour, posun_filter.hour);
+  EEPROM.write(posun_filter.E_min, posun_filter.min);
+
   EEPROM.write(E_krmenie_otacky, krmenie_otacky);
+
+  EEPROM.write(E_krmenie_status, krmenie_status);
 
   Serial.println(F("Write data to EEPROM"));
   Serial.print(start_svetlo.hour);
@@ -469,6 +541,9 @@ void write_data_eeprom() {
   Serial.println(krmenie.min);
 
   Serial.println(krmenie_otacky);
+
+   Serial.print(posun_filter.min);
+   Serial.println("min");
 }
 
 /**
@@ -487,7 +562,12 @@ void read_data_eeprom() {
   krmenie.hour = EEPROM.read(krmenie.E_hour);
   krmenie.min = EEPROM.read(krmenie.E_min);
 
+  posun_filter.hour = EEPROM.read(posun_filter.E_hour);
+  posun_filter.min = EEPROM.read(posun_filter.E_min);
+
   krmenie_otacky = EEPROM.read(E_krmenie_otacky);
+
+  krmenie_status = EEPROM.read(E_krmenie_status);
 
   Serial.print(start_svetlo.hour);
   Serial.print(F(":"));
@@ -533,7 +613,7 @@ bool button_read(uint8_t ID)
 bool krmenie_control() {
 
   // kontrola zapnutia krmenia
-  if (((krmenie.hour == time_actuall.hour) && (krmenie.min == time_actuall.min)) || (button_read(B_KRMENIE))) {
+  if (((krmenie.hour == time_actuall.hour) && (krmenie.min == time_actuall.min) && (krmenie_status)) || (button_read(B_KRMENIE))) {
     krmenie_flag = true;
     krmenie_otacky_status = 0;
     servo_position_cycle = 2;
